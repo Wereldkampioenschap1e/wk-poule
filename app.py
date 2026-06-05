@@ -101,6 +101,12 @@ APPS_SCRIPT_URL = (
     "/exec"
 )
 
+# ── Officiële Data Studio embed-URL (pagina ZdQ0F, 15-min. verversing) ──
+DATASTUDIO_URL = (
+    "https://datastudio.google.com/embed/reporting/"
+    "bc9d502e-c325-4e39-8d4c-be767d896971/page/ZdQ0F?refresh=15"
+)
+
 WEDSTRIJDEN: list[str] = [
     "Mexico - Zuid-Afrika",
     "Zuid-Korea - Tsjechië",
@@ -926,15 +932,30 @@ with main_tab2:
 
     st.markdown("### 📊 Live Klassement")
     st.info(
-        "Het klassement wordt automatisch bijgewerkt na elke wedstrijd. "
-        "Refresh de pagina voor de meest recente stand."
+        "Het klassement wordt automatisch **elke 15 minuten** ververst. "
+        "Wil je de meest actuele stand? Ververs dan de pagina."
     )
 
-    # Looker Studio embed – vervang de URL door jouw eigen embed-link
-    components.iframe(
-        "JOUW_LOOKER_STUDIO_EMBED_LINK_HIER",
-        height=800,
-        scrolling=True,
+    # ── Officiële Data Studio embed – pagina ZdQ0F ───────────
+    # Embed-URL  : datastudio.google.com/embed/reporting/
+    #              bc9d502e-c325-4e39-8d4c-be767d896971/page/ZdQ0F
+    # ?refresh=15 : automatische verversing elke 15 minuten
+    #
+    # sandbox-rechten:
+    #   allow-storage-access-by-user-activation  → Google cookies / inlogstatus
+    #   allow-scripts                            → dashboard JavaScript
+    #   allow-same-origin                        → cross-origin data ophalen
+    #   allow-popups                             → externe links in rapport
+    #   allow-popups-to-escape-sandbox           → Google OAuth-popups
+    components.html(
+        f'<iframe src="{DATASTUDIO_URL}" '
+        'width="100%" height="700" '
+        'style="border:0; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" '
+        'allowfullscreen '
+        'sandbox="allow-storage-access-by-user-activation allow-scripts '
+        'allow-same-origin allow-popups allow-popups-to-escape-sandbox">'
+        '</iframe>',
+        height=720,
     )
 
 # ────────────────────────────────────────────────────────────
