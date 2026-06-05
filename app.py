@@ -8,6 +8,7 @@
 # ============================================================
 
 import json
+import re
 import streamlit as st
 import requests
 
@@ -85,12 +86,48 @@ LANDEN: list[str] = sorted([
 ])
 
 TOPSPELERS: list[str] = sorted([
-    "Achraf Hakimi", "Antoine Griezmann", "Bukayo Saka", "Cody Gakpo",
-    "Cristiano Ronaldo", "Dusan Vlahovic", "Erling Haaland", "Harry Kane",
-    "João Félix", "Jude Bellingham", "Kevin De Bruyne", "Kylian Mbappé",
-    "Lamine Yamal", "Lionel Messi", "Memphis Depay", "Ousmane Dembélé",
-    "Pedri", "Phil Foden", "Richarlison", "Rodri",
-    "Romelu Lukaku", "Sadio Mané", "Vinicius Jr.", "Virgil van Dijk",
+    # 🇫🇷 Frankrijk
+    "Kylian Mbappé", "Antoine Griezmann", "Ousmane Dembélé", "Marcus Thuram",
+    # 🇳🇴 Noorwegen
+    "Erling Haaland",
+    # 🏴󠁧󠁢󠁥󠁮󠁧󠁿 Engeland
+    "Harry Kane", "Jude Bellingham", "Bukayo Saka",
+    # 🇧🇷 Brazilië
+    "Vinicius Junior", "Raphinha", "Neymar",
+    # 🇦🇷 Argentinië
+    "Lionel Messi", "Lautaro Martínez",
+    # 🇵🇹 Portugal
+    "Cristiano Ronaldo", "Rafael Leão", "João Félix",
+    # 🇪🇸 Spanje
+    "Lamine Yamal", "Pedri", "Nico Williams", "Rodri",
+    # 🇧🇪 België
+    "Romelu Lukaku", "Kevin De Bruyne",
+    # 🇳🇱 Nederland
+    "Memphis Depay", "Cody Gakpo", "Virgil van Dijk",
+    # 🇩🇪 Duitsland
+    "Florian Wirtz", "Jamal Musiala",
+    # 🇲🇦 Marokko
+    "Achraf Hakimi",
+    # 🇪🇬 Egypte
+    "Mohamed Salah",
+    # 🏴󠁧󠁢󠁳󠁣󠁴󠁿 Schotland
+    "Scott McTominay",
+    # 🇸🇪 Zweden
+    "Viktor Gyökeres", "Alexander Isak",
+    # 🇺🇾 Uruguay
+    "Darwin Núñez",
+    # 🇨🇴 Colombia
+    "Luís Díaz",
+    # 🇰🇷 Zuid-Korea
+    "Son Heung-min",
+    # 🇮🇷 Iran
+    "Mehdi Taremi",
+    # 🇺🇸 Verenigde Staten
+    "Christian Pulisic",
+    # 🇲🇽 Mexico
+    "Santiago Giménez",
+    # 🇨🇦 Canada
+    "Jonathan David",
 ])
 
 # ────────────────────────────────────────────────────────────
@@ -340,16 +377,27 @@ if submitted:
             f"(je hebt er nu {len(_topscorers)} gekozen)."
         )
 
-    # ── Validatie 4: Alle 24 wedstrijden volledig ingevuld ───
-    incomplete: list[str] = []
+    # ── Validatie 4 & 5: wedstrijden volledig + uitslag-formaat ─
+    # Geldig uitslag-formaat: geheel getal 0–10, streepje, geheel getal 0–10
+    # Goed: "2-1"  "0-0"  "10-0"   Fout: "1"  "-3"  "abc"  "11-0"
+    _UITSLAG_RE = re.compile(r'^(10|[0-9])-(10|[0-9])$')
+
+    incomplete: list[str]        = []
+    ongeldig_uitslag: list[str]  = []
+
     for idx, wedstrijd in enumerate(WEDSTRIJDEN):
         wk      = f"w{idx}"
         uitslag = st.session_state.get(f"{wk}_uitslag", "").strip()
         gele    = st.session_state.get(f"{wk}_gele",    _PH)
         tijd    = st.session_state.get(f"{wk}_tijd",    _PH)
+
         if not uitslag or gele == _PH or tijd == _PH:
             tab_nr = idx // 6 + 1
             incomplete.append(f"Tab {tab_nr} – {wedstrijd}")
+        elif not _UITSLAG_RE.match(uitslag):
+            # Veld is ingevuld maar formaat klopt niet
+            tab_nr = idx // 6 + 1
+            ongeldig_uitslag.append(f"Tab {tab_nr} – {wedstrijd}: \"{uitslag}\"")
 
     if incomplete:
         voorbeeld = ", ".join(incomplete[:3])
@@ -357,6 +405,15 @@ if submitted:
         errors.append(
             f"{len(incomplete)} wedstrijd(en) nog niet volledig ingevuld: "
             f"{voorbeeld}{extra}."
+        )
+
+    if ongeldig_uitslag:
+        voorbeeld_u = ", ".join(ongeldig_uitslag[:3])
+        extra_u     = f" en nog {len(ongeldig_uitslag) - 3} meer" if len(ongeldig_uitslag) > 3 else ""
+        errors.append(
+            f"Ongeldige uitslag bij {len(ongeldig_uitslag)} wedstrijd(en) – gebruik het formaat "
+            f"'X-Y' (bijv. '2-1'), beide getallen 0–10. "
+            f"Controleer: {voorbeeld_u}{extra_u}."
         )
 
     # ── Fouten tonen en stoppen ──────────────────────────────
