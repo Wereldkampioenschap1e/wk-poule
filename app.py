@@ -10,50 +10,27 @@
 #  DATABASE-STRUCTUUR (Google Sheets – 3 tabbladen)
 # ──────────────────────────────────────────────────────────────
 #  Tabblad 1 : 'Ingevulde voorspellingen'
-#              Elke rij = één ingezonden formulier.
-#              Kolommen komen 1-op-1 overeen met de payload-keys.
-#
 #  Tabblad 2 : 'Echte uitslagen'
-#              Beheerder vult na elke wedstrijd de werkelijke
-#              uitslag, gele kaarten en doelpuntminuut in.
-#
 #  Tabblad 3 : 'Leaderboard'
-#              Punten worden automatisch berekend via een
-#              Apps Script trigger na elke update van tabblad 2.
 #
 # ──────────────────────────────────────────────────────────────
 #  PUNTENTELLING POULEFASE  (Speelrondes 1 t/m 3, multiplier 1.0×)
 # ──────────────────────────────────────────────────────────────
-#  Per wedstrijd:
-#    Juiste winnaar of gelijkspel (Toto)    :  5 punten
-#    Exacte uitslag correct                 : 12 punten
-#    Aantal gele kaarten correct (blok)     :  3 punten
-#    Tijdstip 1e doelpunt correct (kwartier):  4 punten
-#
-#  Oranje Special (alleen Nederland – Japan):
-#    Minuut 1e schot op doel correct        :  8 punten
-#
-#  Topscorers (4 spelers gekozen, per ronde):
-#    Aanvaller scoort   → +  5 punten per doelpunt
-#    Middenvelder scoort → +  8 punten per doelpunt
-#    Verdediger scoort  → + 12 punten per doelpunt
+#  Juiste winnaar of gelijkspel (Toto)    :  5 punten
+#  Exacte uitslag correct                 : 12 punten
+#  Aantal gele kaarten correct (blok)     :  3 punten
+#  Tijdstip 1e doelpunt correct (kwartier):  4 punten
+#  Oranje Special (alleen Nederland–Japan):  8 punten  [alleen Ronde 1]
+#  Topscorer scoort: Aanvaller 5pt | Middenvelder 8pt | Verdediger 12pt
 #
 # ──────────────────────────────────────────────────────────────
 #  KNOCK-OUT MULTIPLIERS  (actief vanaf 28 juni)
-#  Pas MULTIPLIER_RONDE aan in Apps Script om te activeren.
-#  Multipliers voor latere rondes: Achtste finales = 1.5x, Kwartfinales = 2.0x, Halve finales = 2.5x, Finale = 3.0x
 # ──────────────────────────────────────────────────────────────
-#  Ronde                        Landen  Multiplier
-#  Zestiende finales            32      × 1.5   ← activeer als eerste KO-ronde
-#  Achtste finales              16      × 2.0
-#  Kwartfinales                  8      × 2.5
-#  Halve finales                 4      × 3.0
-#  Finale & Troostfinale         2      × 4.0
-#
-#  Voorbeeldcode Apps Script:
-#    const MULTIPLIER_RONDE = 1.0;  // ← wijzig per ronde
-#    const puntentotaal = basispunten * MULTIPLIER_RONDE;
-#
+#  Zestiende finales (32) : × 1.5
+#  Achtste finales   (16) : × 2.0
+#  Kwartfinales       (8) : × 2.5
+#  Halve finales      (4) : × 3.0
+#  Finale & Troost        : × 4.0
 # ============================================================
 
 import json
@@ -63,37 +40,8 @@ import streamlit.components.v1 as components
 import requests
 
 # ────────────────────────────────────────────────────────────
-# 0.  CONSTANTEN & PUNTENTELLING-DOCUMENTATIE
+# 0.  CONSTANTEN
 # ────────────────────────────────────────────────────────────
-
-# ── PUNTENTELLING (referentie voor Apps Script-implementatie) ──
-#
-# POULEFASE  (Speelrondes 1–3)  ·  multiplier = 1.0×
-# ─────────────────────────────────────────────────────────────
-# Categorie                              Punten   Sleutel in sheet
-# Juiste winnaar / gelijkspel (Toto)        5    '{wed} (Uitslag)'
-# Exacte uitslag correct                   12    '{wed} (Uitslag)'
-# Gele kaarten correct (blok)               3    '{wed} (Gele Kaarten)'
-# Tijdstip 1e doelpunt correct (kwartier)   4    '{wed} (Tijd 1e Doelpunt)'
-# Oranje Special – minuut 1e schot op doel  8    'Nederland - Japan (Minuut 1e schot op doel)'
-#
-# TOPSCORERS  (4 spelers gekozen per ronde)
-# ─────────────────────────────────────────────────────────────
-# Rol speler        Punten per doelpunt   Sleutels in sheet
-# Aanvaller                5             'Topscorer Speler 1' t/m '...4'
-# Middenvelder             8
-# Verdediger              12
-# (Rolbepaling via aparte lookup-tabel in Apps Script)
-#
-# KNOCK-OUT MULTIPLIERS  (actief vanaf 28 juni)
-# ─────────────────────────────────────────────────────────────
-# const MULTIPLIER_RONDE = 1.0;  // Speelronde 1 – ACTIEF
-# // const MULTIPLIER_RONDE = 1.5;  // Zestiende finales  (32 landen)
-# // const MULTIPLIER_RONDE = 2.0;  // Achtste finales    (16 landen)
-# // const MULTIPLIER_RONDE = 2.5;  // Kwartfinales       ( 8 landen)
-# // const MULTIPLIER_RONDE = 3.0;  // Halve finales      ( 4 landen)
-# // const MULTIPLIER_RONDE = 4.0;  // Finale & Troostfinale
-# Multipliers voor latere rondes: Achtste finales = 1.5x, Kwartfinales = 2.0x, Halve finales = 2.5x, Finale = 3.0x
 
 APPS_SCRIPT_URL = (
     "https://script.google.com/macros/s/"
@@ -101,16 +49,17 @@ APPS_SCRIPT_URL = (
     "/exec"
 )
 
-# ── Officiële Data Studio embed-URL (pagina ZdQ0F, 15-min. verversing) ──
 DATASTUDIO_URL = (
     "https://datastudio.google.com/embed/reporting/"
     "bc9d502e-c325-4e39-8d4c-be767d896971/page/ZdQ0F?refresh=15"
 )
 
-# ── Zet op "Ronde 2" of "Ronde 3" om het instuurformulier te vergrendelen ──
-HUIDIGE_RONDE = "Ronde 2"   # ← HIER AANPASSEN per ronde
+# ── Zet op "Ronde 2" of "Ronde 3" om naar de volgende ronde te schakelen ──
+HUIDIGE_RONDE = "Ronde 1"   # ← HIER AANPASSEN per ronde
 
-WEDSTRIJDEN: list[str] = [
+# ── Wedstrijden per speelronde (elk 24 groepsfase-duels) ──────
+
+WEDSTRIJDEN_R1: list[str] = [
     "Mexico - Zuid-Afrika",
     "Zuid-Korea - Tsjechië",
     "Canada - Bosnië & Herzegovina",
@@ -136,6 +85,67 @@ WEDSTRIJDEN: list[str] = [
     "Ghana - Panama",
     "Oezbekistan - Colombia",
 ]
+
+WEDSTRIJDEN_R2: list[str] = [
+    "Tsjechië - Zuid-Afrika",
+    "Zwitserland - Bosnië & Herzegovina",
+    "Canada - Qatar",
+    "Mexico - Zuid-Korea",
+    "Turkije - Paraguay",
+    "Verenigde Staten - Australië",
+    "Schotland - Marokko",
+    "Brazillië - Haïti",
+    "Tunesië - Japan",
+    "Nederland - Zweden",
+    "Duitsland - Ivoorkust",
+    "Ecuador - Curaçao",
+    "Spanje - Saoedi-Arabië",
+    "België - Iran",
+    "Uruguay - Kaapverdië",
+    "Nieuw-Zeeland - Egypte",
+    "Argentinië - Oostenrijk",
+    "Frankrijk - Irak",
+    "Noorwegen - Senegal",
+    "Jordanië - Algerije",
+    "Portugal - Oezbekistan",
+    "Engeland - Ghana",
+    "Panama - Kroatië",
+    "Colombia - Congo",
+]
+
+WEDSTRIJDEN_R3: list[str] = [
+    "Bosnië & Herzegovina - Qatar",
+    "Zwitserland - Canada",
+    "Marokko - Haïti",
+    "Schotland - Brazillië",
+    "Tsjechië - Mexico",
+    "Zuid-Afrika - Zuid-Korea",
+    "Curaçao - Ivoorkust",
+    "Ecuador - Duitsland",
+    "Japan - Zweden",
+    "Tunesië - Nederland",
+    "Paraguay - Australië",
+    "Turkije - Verenigde Staten",
+    "Noorwegen - Frankrijk",
+    "Senegal - Irak",
+    "Kaapverdië - Saoedi-Arabië",
+    "Uruguay - Spanje",
+    "Egypte - Iran",
+    "Nieuw-Zeeland - België",
+    "Kroatië - Ghana",
+    "Panama - Engeland",
+    "Colombia - Portugal",
+    "Congo - Oezbekistan",
+    "Algerije - Oostenrijk",
+    "Jordanië - Argentinië",
+]
+
+# Actieve wedstrijdenlijst op basis van de huidige ronde
+WEDSTRIJDEN: list[str] = {
+    "Ronde 1": WEDSTRIJDEN_R1,
+    "Ronde 2": WEDSTRIJDEN_R2,
+    "Ronde 3": WEDSTRIJDEN_R3,
+}[HUIDIGE_RONDE]
 
 _PH      = "-- Maak een keuze --"
 _PH_LAND = "-- Selecteer een land --"
@@ -654,16 +664,18 @@ st.markdown("""
 # 2.  SESSION STATE
 # ────────────────────────────────────────────────────────────
 
-if "ingestuurd" not in st.session_state:
-    st.session_state["ingestuurd"] = False
+if f"ingestuurd_{HUIDIGE_RONDE}" not in st.session_state:
+    st.session_state[f"ingestuurd_{HUIDIGE_RONDE}"] = False
 
 # ────────────────────────────────────────────────────────────
 # 3.  HEADER  (buiten tabs)
 # ────────────────────────────────────────────────────────────
 
 st.markdown('<p class="wk-title">⚽ WK Poule 2026</p>', unsafe_allow_html=True)
-st.markdown('<p class="wk-sub">Kompas Publishing – Speelronde 1 · 48 landen · Jouw voorspelling</p>',
-            unsafe_allow_html=True)
+st.markdown(
+    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · 48 landen · Jouw voorspelling</p>',
+    unsafe_allow_html=True,
+)
 
 # ────────────────────────────────────────────────────────────
 # 4.  HOOFD-TABS
@@ -677,19 +689,26 @@ main_tab1, main_tab2 = st.tabs(["📝 Voorspellingen Insturen", "🏆 Live Klass
 
 with main_tab1:
 
-    if st.session_state["ingestuurd"] or HUIDIGE_RONDE != "Ronde 1":
+    if st.session_state.get(f"ingestuurd_{HUIDIGE_RONDE}", False):
         st.success(
-            "✅ Je voorspellingen zijn al ingestuurd! Veel succes – "
-            "check het **🏆 Live Klassement**-tabblad om de stand te volgen."
+            f"✅ Je voorspellingen voor **{HUIDIGE_RONDE}** zijn al ingestuurd! "
+            "Check het **🏆 Live Klassement**-tabblad om de stand te volgen."
         )
     else:
-        st.info(
-            "Vul hieronder voor alle 24 wedstrijden van **Speelronde 1** je "
-            "voorspellingen in en vergeet de bonusvragen niet! "
-            "Je kunt je voorspelling **slechts één keer** insturen."
-        )
+        if HUIDIGE_RONDE == "Ronde 1":
+            st.info(
+                "Vul hieronder voor alle 24 wedstrijden van **Speelronde 1** je "
+                "voorspellingen in en vergeet de bonusvragen niet! "
+                "Je kunt je voorspelling **slechts één keer per ronde** insturen."
+            )
+        else:
+            st.info(
+                f"**{HUIDIGE_RONDE} is open!** Vul hieronder de 24 wedstrijden in "
+                "en pas indien gewenst je topscorers aan. "
+                "Je kunt **slechts één keer per ronde** insturen."
+            )
 
-        with st.form("wk_poule_speelronde_1", border=False):
+        with st.form(f"wk_poule_{HUIDIGE_RONDE.lower().replace(' ', '_')}", border=False):
 
             # ── Sectie 1: Persoonsgegevens ──────────────────
             st.subheader("👤 Jouw gegevens")
@@ -714,7 +733,7 @@ with main_tab1:
             st.divider()
 
             # ── Sectie 2: Wedstrijdvoorspellingen ───────────
-            st.subheader("⚽ Wedstrijdvoorspellingen – Speelronde 1")
+            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE}")
             st.caption(
                 "Vul per wedstrijd de verwachte uitslag in (bijv. **2-1**), "
                 "kies het aantal gele kaarten en de minuut van het eerste doelpunt."
@@ -755,7 +774,7 @@ with main_tab1:
                                 TIJD_DOELPUNT_OPTIES,
                                 key=f"t_{global_i}",
                             )
-                            # Oranje Special – alleen voor Nederland - Japan
+                            # Oranje Special – alleen voor Nederland - Japan (Ronde 1)
                             if wed == "Nederland - Japan":
                                 st.markdown(
                                     "🟠 **Oranje Special!** In welke minuut verwacht "
@@ -774,11 +793,18 @@ with main_tab1:
             # ── Sectie 3: Bonusvragen ────────────────────────
             st.subheader("🏆 Bonusvragen")
 
-            kampioen_val = st.selectbox(
-                "Wie wordt wereldkampioen? *",
-                [_PH_LAND] + LANDEN,
-                key="kampioen",
-            )
+            # Kampioen alleen invullen in Ronde 1
+            if HUIDIGE_RONDE == "Ronde 1":
+                kampioen_val = st.selectbox(
+                    "Wie wordt wereldkampioen? *",
+                    [_PH_LAND] + LANDEN,
+                    key="kampioen",
+                )
+            else:
+                kampioen_val = None
+                st.caption(
+                    "🔒 De kampioenskeuze is afgesloten na Ronde 1."
+                )
 
             topscorer_val = st.multiselect(
                 "Kies precies 4 topscorers (type een naam om te zoeken) *",
@@ -797,7 +823,7 @@ with main_tab1:
 
             # ── Submit ───────────────────────────────────────
             submitted = st.form_submit_button(
-                "📨 Insturen", use_container_width=True, type="primary"
+                f"📨 Insturen – {HUIDIGE_RONDE}", use_container_width=True, type="primary"
             )
 
         # ── Verwerking na submit ─────────────────────────────
@@ -810,9 +836,11 @@ with main_tab1:
             if not email_val.strip() or "@" not in email_val:
                 fouten.append("Vul een geldig e-mailadres in.")
 
-            # Kampioen & topscorers
-            if kampioen_val == _PH_LAND:
+            # Kampioen (alleen Ronde 1)
+            if HUIDIGE_RONDE == "Ronde 1" and kampioen_val == _PH_LAND:
                 fouten.append("Kies een wereldkampioen.")
+
+            # Topscorers
             if len(topscorer_val) != 4:
                 fouten.append(
                     f"Selecteer precies 4 topscorers "
@@ -843,7 +871,7 @@ with main_tab1:
                     "Loop de tabbladen en wedstrijden goed langs!"
                 )
             else:
-                # ── Duplex e-mailadres check ─────────────────
+                # ── Duplex check (ronde-bewust) ───────────────
                 can_submit = True
                 try:
                     resp_get = requests.get(APPS_SCRIPT_URL, timeout=6)
@@ -853,15 +881,16 @@ with main_tab1:
                         if isinstance(data_get, list)
                         else data_get.get("data", [])
                     )
-                    existing_emails = [
+                    existing_for_ronde = [
                         str(r.get("E-mailadres", "")).strip().lower()
                         for r in rows
                         if isinstance(r, dict)
+                        and r.get("Huidige Ronde") == HUIDIGE_RONDE
                     ]
-                    if email_val.strip().lower() in existing_emails:
+                    if email_val.strip().lower() in existing_for_ronde:
                         st.error(
-                            "🚨 Dit e-mailadres heeft al meegedaan! "
-                            "Je mag maar 1x insturen."
+                            f"🚨 Dit e-mailadres heeft al meegedaan voor "
+                            f"**{HUIDIGE_RONDE}**! Je mag per ronde maar 1× insturen."
                         )
                         can_submit = False
                 except Exception:
@@ -870,14 +899,19 @@ with main_tab1:
                 if can_submit:
                     # ── Payload opbouwen ─────────────────────
                     payload: dict = {
-                        "Nickname":            nickname_val,
-                        "E-mailadres":         email_val,
-                        "EK88 Foto URL":       ek88_val,
-                        "Voorspelling Kampioen": kampioen_val,
-                        "Nederland - Japan (Minuut 1e schot op doel)": oranje_min_val,
+                        "Huidige Ronde": HUIDIGE_RONDE,
+                        "Nickname":      nickname_val,
+                        "E-mailadres":   email_val,
+                        "EK88 Foto URL": ek88_val,
                     }
+                    # Kampioen alleen in Ronde 1
+                    if HUIDIGE_RONDE == "Ronde 1":
+                        payload["Voorspelling Kampioen"] = kampioen_val
+                        payload["Nederland - Japan (Minuut 1e schot op doel)"] = oranje_min_val
+                    # Topscorers in elke ronde
                     for j, speler in enumerate(topscorer_val, 1):
                         payload[f"Topscorer Speler {j}"] = speler
+                    # Wedstrijden van de actieve ronde
                     for wed in WEDSTRIJDEN:
                         payload[f"{wed} (Uitslag)"]          = uitslag_vals[wed]
                         payload[f"{wed} (Gele Kaarten)"]     = gele_vals[wed]
@@ -892,10 +926,10 @@ with main_tab1:
                             timeout=12,
                         )
                         if resp_post.status_code == 200:
-                            st.session_state["ingestuurd"] = True
+                            st.session_state[f"ingestuurd_{HUIDIGE_RONDE}"] = True
                             st.success(
-                                "✅ Gelukt! Je voorspellingen zijn succesvol "
-                                "ingestuurd. Veel succes!"
+                                f"✅ Gelukt! Je voorspellingen voor **{HUIDIGE_RONDE}** "
+                                "zijn succesvol ingestuurd. Veel succes!"
                             )
                             st.balloons()
                         else:
@@ -912,44 +946,12 @@ with main_tab1:
 # ══════════════════════════════════════════════════════════════
 
 with main_tab2:
-    # ── DATABASE-STRUCTUUR (Google Sheets) ───────────────────
-    # Tabblad 1 : 'Ingevulde voorspellingen'
-    # Tabblad 2 : 'Echte uitslagen'   ← beheerder vult in na elke wedstrijd
-    # Tabblad 3 : 'Leaderboard'       ← automatisch berekend via Apps Script
-    #
-    # ── PUNTENTELLING POULEFASE ──────────────────────────────
-    # Juiste winnaar / gelijkspel (Toto)     :  5 pt
-    # Exacte uitslag correct                 : 12 pt
-    # Gele kaarten correct (blok)            :  3 pt
-    # Tijdstip 1e doelpunt correct (kwartier):  4 pt
-    # Oranje Special (Ned–Japan)             :  8 pt
-    # Topscorer scoort: Aanvaller  5 pt | Middenvelder  8 pt | Verdediger 12 pt
-    #
-    # ── KNOCK-OUT MULTIPLIERS (activeer per ronde) ───────────
-    # Zestiende finales (32 landen) : × 1.5
-    # Achtste finales   (16 landen) : × 2.0
-    # Kwartfinales      ( 8 landen) : × 2.5
-    # Halve finales     ( 4 landen) : × 3.0
-    # Finale & Troostfinale         : × 4.0
-    # Multipliers voor latere rondes: Achtste finales = 1.5x, Kwartfinales = 2.0x, Halve finales = 2.5x, Finale = 3.0x
-
     st.markdown("### 📊 Live Klassement")
     st.info(
         "Het klassement wordt automatisch **elke 15 minuten** ververst. "
         "Wil je de meest actuele stand? Ververs dan de pagina."
     )
 
-    # ── Officiële Data Studio embed – pagina ZdQ0F ───────────
-    # Embed-URL  : datastudio.google.com/embed/reporting/
-    #              bc9d502e-c325-4e39-8d4c-be767d896971/page/ZdQ0F
-    # ?refresh=15 : automatische verversing elke 15 minuten
-    #
-    # sandbox-rechten:
-    #   allow-storage-access-by-user-activation  → Google cookies / inlogstatus
-    #   allow-scripts                            → dashboard JavaScript
-    #   allow-same-origin                        → cross-origin data ophalen
-    #   allow-popups                             → externe links in rapport
-    #   allow-popups-to-escape-sandbox           → Google OAuth-popups
     components.html(
         f'<iframe src="{DATASTUDIO_URL}" '
         'width="100%" height="700" '
