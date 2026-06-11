@@ -55,7 +55,7 @@ DATASTUDIO_URL = (
 )
 
 # ── Zet op "Ronde 2" of "Ronde 3" om naar de volgende ronde te schakelen ──
-HUIDIGE_RONDE = "Ronde 2"   # ← HIER AANPASSEN per ronde
+HUIDIGE_RONDE = "Ronde 1"   # ← HIER AANPASSEN per ronde
 
 # ── Wedstrijden per speelronde (elk 24 groepsfase-duels) ──────
 
@@ -723,12 +723,7 @@ with main_tab1:
                     placeholder="naam@kompas.nl",
                     key="email",
                 )
-                ek88_val = st.text_input(
-                    "Genereer je retro look op https://ek88look.nl/ en plak hier "
-                    "de link naar je foto (Optioneel):",
-                    placeholder="https://ek88look.nl/...",
-                    key="ek88_url",
-                )
+
 
             st.divider()
 
@@ -743,6 +738,7 @@ with main_tab1:
             gele_vals: dict[str, str] = {}
             tijd_vals: dict[str, str] = {}
             oranje_min_val: int = 15
+            oranje_overtreding_val: int = 10
 
             wed_tabs = st.tabs([
                 "🌍 Wedstrijden 1–6",
@@ -786,6 +782,19 @@ with main_tab1:
                                     max_value=90,
                                     value=15,
                                     key="oranje_schot_min",
+                                )
+                            # Oranje Special – alleen voor Nederland - Zweden (Ronde 2)
+                            elif wed == "Nederland - Zweden":
+                                st.markdown(
+                                    "🟠 **Oranje Special!** In welke minuut verwacht "
+                                    "jij de eerste overtreding van Nederland?"
+                                )
+                                oranje_overtreding_val = st.number_input(
+                                    "Minuut 1e overtreding",
+                                    min_value=1,
+                                    max_value=90,
+                                    value=10,
+                                    key="oranje_overtreding_min",
                                 )
 
             st.divider()
@@ -902,12 +911,14 @@ with main_tab1:
                         "Huidige Ronde": HUIDIGE_RONDE,
                         "Nickname":      nickname_val,
                         "E-mailadres":   email_val,
-                        "EK88 Foto URL": ek88_val,
                     }
                     # Kampioen alleen in Ronde 1
                     if HUIDIGE_RONDE == "Ronde 1":
                         payload["Voorspelling Kampioen"] = kampioen_val
                         payload["Nederland - Japan (Minuut 1e schot op doel)"] = oranje_min_val
+                    # Oranje Special Ronde 2
+                    if HUIDIGE_RONDE == "Ronde 2":
+                        payload["Nederland - Zweden (Minuut 1e overtreding)"] = oranje_overtreding_val
                     # Topscorers in elke ronde
                     for j, speler in enumerate(topscorer_val, 1):
                         payload[f"Topscorer Speler {j}"] = speler
