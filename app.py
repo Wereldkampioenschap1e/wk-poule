@@ -55,7 +55,7 @@ DATASTUDIO_URL = (
 )
 
 # ── Zet op "Ronde 2" of "Ronde 3" om naar de volgende ronde te schakelen ──
-HUIDIGE_RONDE = "Ronde 1"   # ← HIER AANPASSEN per ronde
+HUIDIGE_RONDE = "Ronde 2"   # ← HIER AANPASSEN per ronde
 
 # ── Wedstrijden per speelronde (elk 24 groepsfase-duels) ──────
 
