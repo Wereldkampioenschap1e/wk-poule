@@ -107,6 +107,9 @@ DATASTUDIO_URL = (
     "bc9d502e-c325-4e39-8d4c-be767d896971/page/ZdQ0F?refresh=15"
 )
 
+# ── Zet op "Ronde 2" of "Ronde 3" om het instuurformulier te vergrendelen ──
+HUIDIGE_RONDE = "Ronde 2"   # ← HIER AANPASSEN per ronde
+
 WEDSTRIJDEN: list[str] = [
     "Mexico - Zuid-Afrika",
     "Zuid-Korea - Tsjechië",
@@ -674,7 +677,7 @@ main_tab1, main_tab2 = st.tabs(["📝 Voorspellingen Insturen", "🏆 Live Klass
 
 with main_tab1:
 
-    if st.session_state["ingestuurd"]:
+    if st.session_state["ingestuurd"] or HUIDIGE_RONDE != "Ronde 1":
         st.success(
             "✅ Je voorspellingen zijn al ingestuurd! Veel succes – "
             "check het **🏆 Live Klassement**-tabblad om de stand te volgen."
