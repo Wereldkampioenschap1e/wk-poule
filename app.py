@@ -55,7 +55,7 @@ DATASTUDIO_URL = (
 )
 
 # ── Zet op "Ronde 2" of "Ronde 3" om naar de volgende ronde te schakelen ──
-HUIDIGE_RONDE = "Ronde 2"   # ← HIER AANPASSEN per ronde
+HUIDIGE_RONDE = "Ronde 1"   # ← HIER AANPASSEN per ronde
 
 # ── Wedstrijden per speelronde (elk 24 groepsfase-duels) ──────
 
@@ -919,9 +919,16 @@ with main_tab1:
                     # Oranje Special Ronde 2
                     if HUIDIGE_RONDE == "Ronde 2":
                         payload["Nederland - Zweden (Minuut 1e overtreding)"] = oranje_overtreding_val
-                    # Topscorers in elke ronde
-                    for j, speler in enumerate(topscorer_val, 1):
-                        payload[f"Topscorer Speler {j}"] = speler
+                    # Topscorers: eigen kolom per ronde
+                    if HUIDIGE_RONDE == "Ronde 1":
+                        for j, speler in enumerate(topscorer_val, 1):
+                            payload[f"Topscorer Speler {j}"] = speler
+                    elif HUIDIGE_RONDE == "Ronde 2":
+                        for j, speler in enumerate(topscorer_val, 1):
+                            payload[f"Topscorer Speler {j} (Ronde 2)"] = speler
+                    elif HUIDIGE_RONDE == "Ronde 3":
+                        for j, speler in enumerate(topscorer_val, 1):
+                            payload[f"Topscorer Speler {j} (Ronde 3)"] = speler
                     # Wedstrijden van de actieve ronde
                     for wed in WEDSTRIJDEN:
                         payload[f"{wed} (Uitslag)"]          = uitslag_vals[wed]
