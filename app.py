@@ -770,7 +770,7 @@ with main_tab1:
                     if HUIDIGE_RONDE == "Ronde 2":
                         payload["Nederland - Zweden (Minuut 1e overtreding)"] = oranje_overtreding_val
                     if HUIDIGE_RONDE == "Ronde 3":
-                        payload["Tunesië - Nederland (Minuut 1e wissel)"] = oranje_wissel_val
+                        payload["Tunesië - Nederland (Minuut 1e wissel door nederlands elftal)"] = oranje_wissel_val
 
                     # Topscorers per ronde in eigen kolom
                     if HUIDIGE_RONDE == "Ronde 1":
