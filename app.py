@@ -216,7 +216,7 @@ _SPELERS_RAW: list[str] = [
     "Amir Al Ammari", "Kevin Yakob", "Zidane Iqbal", "Aimar Sher", "Ibrahim Bayesh", "Ahmed Qasim", "Youssef Amyn", "Marko Farji", "Ali Jassim", "Ali Al Hamadi", "Ali Yousif", "Aymen Hussein",
     "Mohanad Ali",
     # Noorwegen
-    "Kristoffer Vassbakk Ajer", "Fredrik Bjørkan", "Henrik Falchener", "Sondre Langas", "Torbjørn Heggem", "Marcus Pedersen", "Julian Ryerson", "David Møller Wolfe", "Leo Østigard",
+    "Kristoffer Vassbakk Ajer", "Fredrik Bjørkan", "Henrik Falchener", "Sondre Langas", "Torbjørn Heggem", "Marcus Pedersen", "Julian Ryerson", "David Møller Wolfe", "Leo Østungard",
     "Fredrik Aursnes", "Patrick Berg", "Sander Berge", "Morten Thorsby", "Kristian Thorstvedt", "Martin Ødegaard", "Thelonious Aasgaard", "Oscar Bobb", "Jens Petter Hauge", "Antonio Nusa", "Andreas Schjelderup",
     "Erling Braut Haaland", "Jørgen Strand Larsen", "Alexander Sørloth",
     # Senegal
@@ -273,6 +273,7 @@ _SPELERS_RAW: list[str] = [
     "Ismael Díaz", "José Fajardo", "Tomás Rodríguez", "Cecilio Waterman"
 ]
 
+# Gesorteerde, gededupliceerde spelerslijst voor de multiselect
 TOPSPELERS: list[str] = sorted(set(_SPELERS_RAW))
 
 # ────────────────────────────────────────────────────────────
@@ -356,14 +357,14 @@ with main_tab1:
                             gele_vals[wed] = st.selectbox("Gele kaarten", GELE_KAARTEN_OPTIES, key=f"g_{global_i}")
                             tijd_vals[wed] = st.selectbox("Tijd 1e doelpunt", TIJD_DOELPUNT_OPTIES, key=f"t_{global_i}")
 
-                            # Dagspecials per ronde dynamisch ingebouwd
-                            if wed == "Nederland - Japan":
+                            # Waterdichte Dagspecials per ronde (ongevoelig voor exacte trema's/spatiering)
+                            if "Nederland" in wed and "Japan" in wed:
                                 st.markdown("🟠 **Oranje Special!** In welke minuut verwacht jij het eerste schot op doel van Nederland?")
                                 oranje_min_val = st.number_input("Minuut 1e schot op doel", min_value=1, max_value=90, value=15, key="oranje_schot_min")
-                            elif wed == "Nederland - Zweden":
+                            elif "Nederland" in wed and "Zweden" in wed:
                                 st.markdown("🟠 **Oranje Special!** In welke minuut verwacht jij de eerste overtreding van Nederland?")
                                 oranje_overtreding_val = st.number_input("Minuut 1e overtreding", min_value=1, max_value=90, value=10, key="oranje_overtreding_min")
-                            elif wed == "Tunesië - Nederland":
+                            elif "Tunesi" in wed and "Nederland" in wed:
                                 st.markdown("🟠 **Oranje Special!** In welke minuut valt de **allereerste wissel** aan de kant van het Nederlands Elftal?")
                                 oranje_wissel_val = st.number_input("Minuut 1e wissel Nederland", min_value=1, max_value=90, value=60, key="oranje_wissel_min")
 
