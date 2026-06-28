@@ -58,7 +58,6 @@ WEDSTRIJDEN_R3: list[str] = [
 
 # ── Zestiende finales (16 wedstrijden, multiplier × 1.5) ─────
 WEDSTRIJDEN_R4: list[str] = [
-    "Zuid-Afrika - Canada",
     "Brazillië - Japan",
     "Duitsland - Paraguay",
     "Nederland - Marokko",
