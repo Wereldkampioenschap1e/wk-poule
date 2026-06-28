@@ -23,8 +23,8 @@ DATASTUDIO_URL = (
     "bc9d502e-c325-4e39-8d4c-be767d896971/page/ZdQ0F?refresh=15"
 )
 
-# ← HIER AANPASSEN per ronde  ("Ronde 1" | "Ronde 2" | "Ronde 3")
-HUIDIGE_RONDE = "Ronde 3"
+# ← HIER AANPASSEN per ronde
+HUIDIGE_RONDE = "Ronde 4"
 
 WEDSTRIJDEN_R1: list[str] = [
     "Mexico - Zuid-Afrika", "Zuid-Korea - Tsjechië", "Canada - Bosnië & Herzegovina",
@@ -56,10 +56,31 @@ WEDSTRIJDEN_R3: list[str] = [
     "Congo - Oezbekistan", "Algerije - Oostenrijk", "Jordanië - Argentinië",
 ]
 
+# ── Zestiende finales (16 wedstrijden, multiplier × 1.5) ─────
+WEDSTRIJDEN_R4: list[str] = [
+    "Zuid-Afrika - Canada",
+    "Brazillië - Japan",
+    "Duitsland - Paraguay",
+    "Nederland - Marokko",
+    "Ivoorkust - Noorwegen",
+    "Frankrijk - Zweden",
+    "Mexico - Ecuador",
+    "Engeland - Congo",
+    "België - Senegal",
+    "Verenigde Staten - Bosnië & Herzegovina",
+    "Spanje - Oostenrijk",
+    "Portugal - Kroatië",
+    "Zwitserland - Algerije",
+    "Australië - Egypte",
+    "Argentinië - Kaapverdië",
+    "Colombia - Ghana",
+]
+
 WEDSTRIJDEN: list[str] = {
     "Ronde 1": WEDSTRIJDEN_R1,
     "Ronde 2": WEDSTRIJDEN_R2,
     "Ronde 3": WEDSTRIJDEN_R3,
+    "Ronde 4": WEDSTRIJDEN_R4,
 }[HUIDIGE_RONDE]
 
 _PH      = "-- Maak een keuze --"
@@ -583,7 +604,7 @@ if f"ingestuurd_{HUIDIGE_RONDE}" not in st.session_state:
 
 st.markdown('<p class="wk-title">⚽ WK Poule 2026</p>', unsafe_allow_html=True)
 st.markdown(
-    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · 48 landen · Jouw voorspelling</p>',
+    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Zestiende Finales · Multiplier ×1.5</p>',
     unsafe_allow_html=True,
 )
 
@@ -605,18 +626,10 @@ with main_tab1:
             "Check het **🏆 Live Klassement**-tabblad om de stand te volgen."
         )
     else:
-        if HUIDIGE_RONDE == "Ronde 1":
-            st.info(
-                "Vul hieronder voor alle 24 wedstrijden van **Speelronde 1** je "
-                "voorspellingen in en vergeet de bonusvragen niet! "
-                "Je kunt je voorspelling **slechts één keer per ronde** insturen."
-            )
-        else:
-            st.info(
-                f"**{HUIDIGE_RONDE} is open!** Vul hieronder de 24 wedstrijden in "
-                "en pas indien gewenst je topscorers aan. "
-                "Je kunt **slechts één keer per ronde** insturen."
-            )
+        st.info(
+            f"**{HUIDIGE_RONDE} – Zestiende Finales is open!** Alle punten tellen ×1.5. "
+            "Vul de 16 wedstrijden in en kies je topscorers."
+        )
 
         with st.form(f"wk_poule_{HUIDIGE_RONDE.lower().replace(' ', '_')}", border=False):
 
@@ -629,7 +642,7 @@ with main_tab1:
             st.divider()
 
             # ── Wedstrijdvoorspellingen ─────────────────────
-            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE}")
+            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×1.5)")
             st.caption(
                 "Vul per wedstrijd de verwachte uitslag in (bijv. **2-1**), "
                 "kies het aantal gele kaarten en de minuut van het eerste doelpunt."
@@ -638,19 +651,20 @@ with main_tab1:
             uitslag_vals: dict[str, str] = {}
             gele_vals:    dict[str, str] = {}
             tijd_vals:    dict[str, str] = {}
-            oranje_min_val:         int = 15
-            oranje_overtreding_val: int = 10
-            oranje_wissel_val:      int = 45
+            oranje_r4_val: int = 20
 
+            # Ronde 4 heeft 16 wedstrijden → 4 tabs van 4
             wed_tabs = st.tabs([
-                "🌍 Wedstrijden 1–6", "🌍 Wedstrijden 7–12",
-                "🌍 Wedstrijden 13–18", "🌍 Wedstrijden 19–24",
+                "🌍 Wedstrijden 1–4", "🌍 Wedstrijden 5–8",
+                "🌍 Wedstrijden 9–12", "🌍 Wedstrijden 13–16",
             ])
 
-            for tab_idx, (wtab, start) in enumerate(zip(wed_tabs, [0, 6, 12, 18])):
+            for tab_idx, (wtab, start) in enumerate(zip(wed_tabs, [0, 4, 8, 12])):
                 with wtab:
-                    for local_i in range(6):
+                    for local_i in range(4):
                         global_i = start + local_i
+                        if global_i >= len(WEDSTRIJDEN):
+                            break
                         wed = WEDSTRIJDEN[global_i]
                         with st.expander(f"⚽ {wed}"):
                             uitslag_vals[wed] = st.text_input(
@@ -660,34 +674,21 @@ with main_tab1:
                             tijd_vals[wed] = st.selectbox(
                                 "Tijd 1e doelpunt", TIJD_DOELPUNT_OPTIES, key=f"t_{global_i}")
 
-                            # Oranje Special R1 – Nederland - Japan
-                            if wed == "Nederland - Japan":
-                                st.markdown("🟠 **Oranje Special!** In welke minuut verwacht jij het eerste schot op doel van Nederland?")
-                                oranje_min_val = st.number_input(
-                                    "Minuut 1e schot op doel", min_value=1, max_value=90, value=15, key="oranje_schot_min")
-
-                            # Oranje Special R2 – Nederland - Zweden
-                            elif wed == "Nederland - Zweden":
-                                st.markdown("🟠 **Oranje Special!** In welke minuut verwacht jij de eerste overtreding van Nederland?")
-                                oranje_overtreding_val = st.number_input(
-                                    "Minuut 1e overtreding", min_value=1, max_value=90, value=10, key="oranje_overtreding_min")
-
-                            # Oranje Special R3 – Tunesië - Nederland
-                            elif wed == "Tunesië - Nederland":
-                                st.markdown("🟠 **Oranje Special!** In welke minuut verwacht jij de eerste gele kaart voor Nederland?")
-                                oranje_wissel_val = st.number_input(
-                                    "Minuut 1e gele kaart", min_value=1, max_value=90, value=45, key="oranje_wissel_min")
+                            # Oranje Special R4 – Nederland - Marokko
+                            if wed == "Nederland - Marokko":
+                                st.markdown(
+                                    "🟠 **Oranje Special!** Hoeveel overtredingen verwacht jij "
+                                    "in totaal bij Nederland - Marokko? *(bron: flashfootball.com)*"
+                                )
+                                oranje_r4_val = st.number_input(
+                                    "Totaal aantal overtredingen", min_value=0, max_value=60,
+                                    value=20, key="oranje_r4_overtredingen")
 
             st.divider()
 
             # ── Bonusvragen ─────────────────────────────────
-            st.subheader("🏆 Bonusvragen")
-
-            if HUIDIGE_RONDE == "Ronde 1":
-                kampioen_val = st.selectbox("Wie wordt wereldkampioen? *", [_PH_LAND] + LANDEN, key="kampioen")
-            else:
-                kampioen_val = None
-                st.caption("🔒 De kampioenskeuze is afgesloten na Ronde 1.")
+            st.subheader("🏆 Topscorers")
+            st.caption("🔒 De kampioenskeuze staat vast na Ronde 1.")
 
             topscorer_val = st.multiselect(
                 "Kies precies 4 topscorers (type een naam om te zoeken) *",
@@ -710,15 +711,13 @@ with main_tab1:
                 fouten.append("Vul je nickname in.")
             if not email_val.strip() or "@" not in email_val:
                 fouten.append("Vul een geldig e-mailadres in.")
-            if HUIDIGE_RONDE == "Ronde 1" and kampioen_val == _PH_LAND:
-                fouten.append("Kies een wereldkampioen.")
             if len(topscorer_val) != 4:
                 fouten.append(f"Selecteer precies 4 topscorers (nu {len(topscorer_val)} geselecteerd).")
 
             uitslag_fouten: list[str] = []
             for i, wed in enumerate(WEDSTRIJDEN):
-                tab_nr = i // 6 + 1
-                label  = f"Wedstrijden {tab_nr * 6 - 5}–{tab_nr * 6}"
+                tab_nr = i // 4 + 1
+                label  = f"Wedstrijden {tab_nr * 4 - 3}–{tab_nr * 4}"
                 if not _UITSLAG_RE.match(uitslag_vals[wed].strip()):
                     uitslag_fouten.append(f"'{wed}' ({label})")
                 if gele_vals[wed] == _PH:
@@ -729,9 +728,8 @@ with main_tab1:
                 fouten.append("Ongeldige of ontbrekende uitslag bij: " + ", ".join(uitslag_fouten) + ".")
 
             if fouten:
-                st.error("⚠️ Je bent vergeten een aantal velden in te vullen. Loop de tabbladen goed langs!")
+                st.error("⚠️ Niet alle velden zijn correct ingevuld. Loop de tabbladen langs!")
             else:
-                # Duplex check: kijk of dit e-mail al een inzending heeft voor deze ronde
                 can_submit = True
                 try:
                     resp_get = requests.get(APPS_SCRIPT_URL, timeout=6)
@@ -742,17 +740,8 @@ with main_tab1:
                         if not isinstance(r, dict):
                             continue
                         if str(r.get("E-mailadres", "")).strip().lower() == email_val.strip().lower():
-                            # Ronde 1: rij bestaat al → duplicate
-                            if HUIDIGE_RONDE == "Ronde 1":
-                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 1!")
-                                can_submit = False
-                            # Ronde 2: kijk of topscorer R2 al ingevuld is
-                            elif HUIDIGE_RONDE == "Ronde 2" and r.get("Topscorer Speler 1 (Ronde 2)", ""):
-                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 2!")
-                                can_submit = False
-                            # Ronde 3: kijk of topscorer R3 al ingevuld is
-                            elif HUIDIGE_RONDE == "Ronde 3" and r.get("Topscorer Speler 1 (Ronde 3)", ""):
-                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 3!")
+                            if HUIDIGE_RONDE == "Ronde 4" and r.get("Topscorer Speler 1 (Ronde 4)", ""):
+                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 4!")
                                 can_submit = False
                             break
                 except Exception:
@@ -763,26 +752,10 @@ with main_tab1:
                         "Huidige Ronde": HUIDIGE_RONDE,
                         "Nickname":      nickname_val,
                         "E-mailadres":   email_val,
+                        "Nederland - Marokko (Totaal overtredingen)": oranje_r4_val,
                     }
-                    if HUIDIGE_RONDE == "Ronde 1":
-                        payload["Voorspelling Kampioen"] = kampioen_val
-                        payload["Nederland - Japan (Minuut 1e schot op doel)"] = oranje_min_val
-                    if HUIDIGE_RONDE == "Ronde 2":
-                        payload["Nederland - Zweden (Minuut 1e overtreding)"] = oranje_overtreding_val
-                    if HUIDIGE_RONDE == "Ronde 3":
-                        payload["Tunesië - Nederland (Minuut 1e gele kaart)"] = oranje_wissel_val
-
-                    # Topscorers per ronde in eigen kolom
-                    if HUIDIGE_RONDE == "Ronde 1":
-                        for j, speler in enumerate(topscorer_val, 1):
-                            payload[f"Topscorer Speler {j}"] = speler
-                    elif HUIDIGE_RONDE == "Ronde 2":
-                        for j, speler in enumerate(topscorer_val, 1):
-                            payload[f"Topscorer Speler {j} (Ronde 2)"] = speler
-                    elif HUIDIGE_RONDE == "Ronde 3":
-                        for j, speler in enumerate(topscorer_val, 1):
-                            payload[f"Topscorer Speler {j} (Ronde 3)"] = speler
-
+                    for j, speler in enumerate(topscorer_val, 1):
+                        payload[f"Topscorer Speler {j} (Ronde 4)"] = speler
                     for wed in WEDSTRIJDEN:
                         payload[f"{wed} (Uitslag)"]          = uitslag_vals[wed]
                         payload[f"{wed} (Gele Kaarten)"]     = gele_vals[wed]
