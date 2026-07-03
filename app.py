@@ -24,7 +24,7 @@ DATASTUDIO_URL = (
 )
 
 # ← HIER AANPASSEN per ronde
-HUIDIGE_RONDE = "Ronde 4"
+HUIDIGE_RONDE = "Ronde 5"
 
 WEDSTRIJDEN_R1: list[str] = [
     "Mexico - Zuid-Afrika", "Zuid-Korea - Tsjechië", "Canada - Bosnië & Herzegovina",
@@ -35,7 +35,6 @@ WEDSTRIJDEN_R1: list[str] = [
     "Frankrijk - Senegal", "Irak - Noorwegen", "Argentinië - Algerije", "Portugal - Congo",
     "Engeland - Kroatië", "Ghana - Panama", "Oezbekistan - Colombia",
 ]
-
 WEDSTRIJDEN_R2: list[str] = [
     "Tsjechië - Zuid-Afrika", "Zwitserland - Bosnië & Herzegovina", "Canada - Qatar",
     "Mexico - Zuid-Korea", "Turkije - Paraguay", "Verenigde Staten - Australië",
@@ -45,7 +44,6 @@ WEDSTRIJDEN_R2: list[str] = [
     "Frankrijk - Irak", "Noorwegen - Senegal", "Jordanië - Algerije",
     "Portugal - Oezbekistan", "Engeland - Ghana", "Panama - Kroatië", "Colombia - Congo",
 ]
-
 WEDSTRIJDEN_R3: list[str] = [
     "Bosnië & Herzegovina - Qatar", "Zwitserland - Canada", "Marokko - Haïti",
     "Schotland - Brazillië", "Tsjechië - Mexico", "Zuid-Afrika - Zuid-Korea",
@@ -55,24 +53,24 @@ WEDSTRIJDEN_R3: list[str] = [
     "Nieuw-Zeeland - België", "Kroatië - Ghana", "Panama - Engeland", "Colombia - Portugal",
     "Congo - Oezbekistan", "Algerije - Oostenrijk", "Jordanië - Argentinië",
 ]
-
-# ── Zestiende finales (16 wedstrijden, multiplier × 1.5) ─────
 WEDSTRIJDEN_R4: list[str] = [
-    "Brazillië - Japan",
-    "Duitsland - Paraguay",
-    "Nederland - Marokko",
-    "Ivoorkust - Noorwegen",
-    "Frankrijk - Zweden",
-    "Mexico - Ecuador",
-    "Engeland - Congo",
-    "België - Senegal",
-    "Verenigde Staten - Bosnië & Herzegovina",
-    "Spanje - Oostenrijk",
-    "Portugal - Kroatië",
-    "Zwitserland - Algerije",
-    "Australië - Egypte",
-    "Argentinië - Kaapverdië",
-    "Colombia - Ghana",
+    "Brazillië - Japan", "Duitsland - Paraguay", "Nederland - Marokko",
+    "Ivoorkust - Noorwegen", "Frankrijk - Zweden", "Mexico - Ecuador",
+    "Engeland - Congo", "België - Senegal", "Verenigde Staten - Bosnië & Herzegovina",
+    "Spanje - Oostenrijk", "Portugal - Kroatië", "Zwitserland - Algerije",
+    "Australië - Egypte", "Argentinië - Kaapverdië", "Colombia - Ghana",
+]
+
+# ── Achtste finales (8 wedstrijden, multiplier × 2.0) ────────
+WEDSTRIJDEN_R5: list[str] = [
+    "Canada - Marokko",
+    "Paraguay - Frankrijk",
+    "Brazillië - Noorwegen",
+    "Mexico - Engeland",
+    "Portugal - Spanje",
+    "Verenigde Staten - België",
+    "Australië/Egypte - Argentinië/Kaapverdië",
+    "Zwitserland - Colombia/Ghana",
 ]
 
 WEDSTRIJDEN: list[str] = {
@@ -80,6 +78,7 @@ WEDSTRIJDEN: list[str] = {
     "Ronde 2": WEDSTRIJDEN_R2,
     "Ronde 3": WEDSTRIJDEN_R3,
     "Ronde 4": WEDSTRIJDEN_R4,
+    "Ronde 5": WEDSTRIJDEN_R5,
 }[HUIDIGE_RONDE]
 
 _PH      = "-- Maak een keuze --"
@@ -88,13 +87,11 @@ _PH_LAND = "-- Selecteer een land --"
 GELE_KAARTEN_OPTIES: list[str] = [
     _PH, "0-2 gele kaarten", "3-4 gele kaarten", "5+ gele kaarten",
 ]
-
 TIJD_DOELPUNT_OPTIES: list[str] = [
     _PH, "Geen doelpunt",
     "1\u201315 min", "16\u201330 min", "31\u201345+ min",
     "46\u201360 min", "61\u201375 min", "76\u201390+ min",
 ]
-
 LANDEN: list[str] = sorted([
     "Algerije", "Argentinië", "Australië", "België", "Bosnië & Herzegovina",
     "Brazillië", "Canada", "Colombia", "Congo", "Curaçao", "Duitsland", "Ecuador",
@@ -105,7 +102,6 @@ LANDEN: list[str] = sorted([
     "Tunesië", "Turkije", "Uruguay", "Verenigde Staten", "Zuid-Afrika", "Zuid-Korea",
     "Zweden", "Zwitserland",
 ])
-
 _UITSLAG_RE = re.compile(r"^(10|[0-9])-(10|[0-9])$")
 
 # ── Alle veldspelers (verdedigers + middenvelders + aanvallers) ──
@@ -579,7 +575,6 @@ st.set_page_config(
     page_icon="⚽",
     layout="centered",
 )
-
 st.markdown("""
 <style>
     .wk-title { font-size:2.4rem; font-weight:800; text-align:center;
@@ -603,7 +598,7 @@ if f"ingestuurd_{HUIDIGE_RONDE}" not in st.session_state:
 
 st.markdown('<p class="wk-title">⚽ WK Poule 2026</p>', unsafe_allow_html=True)
 st.markdown(
-    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Zestiende Finales · Multiplier ×1.5</p>',
+    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Achtste Finales · Multiplier ×2.0</p>',
     unsafe_allow_html=True,
 )
 
@@ -612,10 +607,6 @@ st.markdown(
 # ────────────────────────────────────────────────────────────
 
 main_tab1, main_tab2 = st.tabs(["📝 Voorspellingen Insturen", "🏆 Live Klassement"])
-
-# ══════════════════════════════════════════════════════════════
-# TAB 1 – VOORSPELLINGEN
-# ══════════════════════════════════════════════════════════════
 
 with main_tab1:
 
@@ -626,13 +617,13 @@ with main_tab1:
         )
     else:
         st.info(
-            f"**{HUIDIGE_RONDE} – Zestiende Finales is open!** Alle punten tellen ×1.5. "
-            "Vul de 16 wedstrijden in en kies je topscorers."
+            f"**{HUIDIGE_RONDE} – Achtste Finales is open!** Alle punten tellen ×2.0. "
+            "Vul de 8 wedstrijden in en kies je topscorers. "
+            "Let op: 2 wedstrijden zijn nog afhankelijk van de uitslag van Ronde 4."
         )
 
         with st.form(f"wk_poule_{HUIDIGE_RONDE.lower().replace(' ', '_')}", border=False):
 
-            # ── Persoonsgegevens ────────────────────────────
             st.subheader("👤 Jouw gegevens")
             with st.container(border=True):
                 nickname_val = st.text_input("Nickname *", placeholder="Bijv. VoetbalFan88", key="nickname")
@@ -640,8 +631,7 @@ with main_tab1:
 
             st.divider()
 
-            # ── Wedstrijdvoorspellingen ─────────────────────
-            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×1.5)")
+            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×2.0)")
             st.caption(
                 "Vul per wedstrijd de verwachte uitslag in (bijv. **2-1**), "
                 "kies het aantal gele kaarten en de minuut van het eerste doelpunt."
@@ -650,15 +640,10 @@ with main_tab1:
             uitslag_vals: dict[str, str] = {}
             gele_vals:    dict[str, str] = {}
             tijd_vals:    dict[str, str] = {}
-            oranje_r4_val: int = 20
 
-            # Ronde 4 heeft 16 wedstrijden → 4 tabs van 4
-            wed_tabs = st.tabs([
-                "🌍 Wedstrijden 1–4", "🌍 Wedstrijden 5–8",
-                "🌍 Wedstrijden 9–12", "🌍 Wedstrijden 13–16",
-            ])
+            wed_tabs = st.tabs(["🌍 Wedstrijden 1–4", "🌍 Wedstrijden 5–8"])
 
-            for tab_idx, (wtab, start) in enumerate(zip(wed_tabs, [0, 4, 8, 12])):
+            for tab_idx, (wtab, start) in enumerate(zip(wed_tabs, [0, 4])):
                 with wtab:
                     for local_i in range(4):
                         global_i = start + local_i
@@ -673,19 +658,8 @@ with main_tab1:
                             tijd_vals[wed] = st.selectbox(
                                 "Tijd 1e doelpunt", TIJD_DOELPUNT_OPTIES, key=f"t_{global_i}")
 
-                            # Oranje Special R4 – Nederland - Marokko
-                            if wed == "Nederland - Marokko":
-                                st.markdown(
-                                    "🟠 **Oranje Special!** Hoeveel overtredingen verwacht jij "
-                                    "in totaal bij Nederland - Marokko? *(bron: flashfootball.com)*"
-                                )
-                                oranje_r4_val = st.number_input(
-                                    "Totaal aantal overtredingen", min_value=0, max_value=60,
-                                    value=20, key="oranje_r4_overtredingen")
-
             st.divider()
 
-            # ── Bonusvragen ─────────────────────────────────
             st.subheader("🏆 Topscorers")
             st.caption("🔒 De kampioenskeuze staat vast na Ronde 1.")
 
@@ -702,27 +676,20 @@ with main_tab1:
             submitted = st.form_submit_button(
                 f"📨 Insturen – {HUIDIGE_RONDE}", use_container_width=True, type="primary")
 
-        # ── Verwerking na submit ─────────────────────────────
         if submitted:
             fouten: list[str] = []
-
-            if not nickname_val.strip():
-                fouten.append("Vul je nickname in.")
-            if not email_val.strip() or "@" not in email_val:
-                fouten.append("Vul een geldig e-mailadres in.")
-            if len(topscorer_val) != 4:
-                fouten.append(f"Selecteer precies 4 topscorers (nu {len(topscorer_val)} geselecteerd).")
+            if not nickname_val.strip(): fouten.append("Vul je nickname in.")
+            if not email_val.strip() or "@" not in email_val: fouten.append("Vul een geldig e-mailadres in.")
+            if len(topscorer_val) != 4: fouten.append(f"Selecteer precies 4 topscorers (nu {len(topscorer_val)} geselecteerd).")
 
             uitslag_fouten: list[str] = []
             for i, wed in enumerate(WEDSTRIJDEN):
                 tab_nr = i // 4 + 1
-                label  = f"Wedstrijden {tab_nr * 4 - 3}–{tab_nr * 4}"
+                label  = f"Wedstrijden {tab_nr * 4 - 3}–{min(tab_nr * 4, len(WEDSTRIJDEN))}"
                 if not _UITSLAG_RE.match(uitslag_vals[wed].strip()):
                     uitslag_fouten.append(f"'{wed}' ({label})")
-                if gele_vals[wed] == _PH:
-                    fouten.append(f"Gele kaarten ontbreken: '{wed}'.")
-                if tijd_vals[wed] == _PH:
-                    fouten.append(f"Tijd 1e doelpunt ontbreekt: '{wed}'.")
+                if gele_vals[wed] == _PH: fouten.append(f"Gele kaarten ontbreken: '{wed}'.")
+                if tijd_vals[wed] == _PH: fouten.append(f"Tijd 1e doelpunt ontbreekt: '{wed}'.")
             if uitslag_fouten:
                 fouten.append("Ongeldige of ontbrekende uitslag bij: " + ", ".join(uitslag_fouten) + ".")
 
@@ -733,14 +700,12 @@ with main_tab1:
                 try:
                     resp_get = requests.get(APPS_SCRIPT_URL, timeout=6)
                     rows = resp_get.json()
-                    if not isinstance(rows, list):
-                        rows = rows.get("data", [])
+                    if not isinstance(rows, list): rows = rows.get("data", [])
                     for r in rows:
-                        if not isinstance(r, dict):
-                            continue
+                        if not isinstance(r, dict): continue
                         if str(r.get("E-mailadres", "")).strip().lower() == email_val.strip().lower():
-                            if HUIDIGE_RONDE == "Ronde 4" and r.get("Topscorer Speler 1 (Ronde 4)", ""):
-                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 4!")
+                            if r.get("Topscorer Speler 1 (Ronde 5)", ""):
+                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 5!")
                                 can_submit = False
                             break
                 except Exception:
@@ -751,10 +716,9 @@ with main_tab1:
                         "Huidige Ronde": HUIDIGE_RONDE,
                         "Nickname":      nickname_val,
                         "E-mailadres":   email_val,
-                        "Nederland - Marokko (Totaal overtredingen)": oranje_r4_val,
                     }
                     for j, speler in enumerate(topscorer_val, 1):
-                        payload[f"Topscorer Speler {j} (Ronde 4)"] = speler
+                        payload[f"Topscorer Speler {j} (Ronde 5)"] = speler
                     for wed in WEDSTRIJDEN:
                         payload[f"{wed} (Uitslag)"]          = uitslag_vals[wed]
                         payload[f"{wed} (Gele Kaarten)"]     = gele_vals[wed]
@@ -775,10 +739,6 @@ with main_tab1:
                             st.error(f"Fout bij opslaan (status {resp_post.status_code}). Probeer opnieuw.")
                     except Exception as ex:
                         st.error(f"Verbindingsfout: {ex}")
-
-# ══════════════════════════════════════════════════════════════
-# TAB 2 – LIVE KLASSEMENT
-# ══════════════════════════════════════════════════════════════
 
 with main_tab2:
     st.markdown("### 📊 Live Klassement")
