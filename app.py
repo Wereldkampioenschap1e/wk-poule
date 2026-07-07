@@ -8,23 +8,18 @@ import streamlit as st
 import streamlit.components.v1 as components
 import requests
 
-# ────────────────────────────────────────────────────────────
-# 0.  CONSTANTEN
-# ────────────────────────────────────────────────────────────
-
 APPS_SCRIPT_URL = (
     "https://script.google.com/macros/s/"
     "AKfycbzcWQFCmtVNS72LlJy0jpq2oDnfSuutM3ups1SdIOEjuBp7hcm3ZTe_ypdkimmOR7Ll"
     "/exec"
 )
-
 DATASTUDIO_URL = (
     "https://datastudio.google.com/embed/reporting/"
     "bc9d502e-c325-4e39-8d4c-be767d896971/page/ZdQ0F?refresh=15"
 )
 
 # ← HIER AANPASSEN per ronde
-HUIDIGE_RONDE = "Ronde 5"
+HUIDIGE_RONDE = "Ronde 6"
 
 WEDSTRIJDEN_R1: list[str] = [
     "Mexico - Zuid-Afrika", "Zuid-Korea - Tsjechië", "Canada - Bosnië & Herzegovina",
@@ -60,17 +55,18 @@ WEDSTRIJDEN_R4: list[str] = [
     "Spanje - Oostenrijk", "Portugal - Kroatië", "Zwitserland - Algerije",
     "Australië - Egypte", "Argentinië - Kaapverdië", "Colombia - Ghana",
 ]
-
-# ── Achtste finales (8 wedstrijden, multiplier × 2.0) ────────
 WEDSTRIJDEN_R5: list[str] = [
-    "Canada - Marokko",
-    "Paraguay - Frankrijk",
-    "Brazillië - Noorwegen",
-    "Mexico - Engeland",
-    "Portugal - Spanje",
-    "Verenigde Staten - België",
-    "Australië/Egypte - Argentinië/Kaapverdië",
-    "Zwitserland - Colombia/Ghana",
+    "Canada - Marokko", "Paraguay - Frankrijk", "Brazillië - Noorwegen",
+    "Mexico - Engeland", "Portugal - Spanje", "Verenigde Staten - België",
+    "Australië/Egypte - Argentinië/Kaapverdië", "Zwitserland - Colombia/Ghana",
+]
+
+# ── Kwartfinales (4 wedstrijden, multiplier × 2.5) ───────────
+WEDSTRIJDEN_R6: list[str] = [
+    "Frankrijk - Marokko",
+    "Spanje - België",
+    "Noorwegen - Engeland",
+    "Argentinië - Zwitserland",
 ]
 
 WEDSTRIJDEN: list[str] = {
@@ -79,6 +75,7 @@ WEDSTRIJDEN: list[str] = {
     "Ronde 3": WEDSTRIJDEN_R3,
     "Ronde 4": WEDSTRIJDEN_R4,
     "Ronde 5": WEDSTRIJDEN_R5,
+    "Ronde 6": WEDSTRIJDEN_R6,
 }[HUIDIGE_RONDE]
 
 _PH      = "-- Maak een keuze --"
@@ -585,26 +582,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ────────────────────────────────────────────────────────────
-# 2.  SESSION STATE
-# ────────────────────────────────────────────────────────────
-
 if f"ingestuurd_{HUIDIGE_RONDE}" not in st.session_state:
     st.session_state[f"ingestuurd_{HUIDIGE_RONDE}"] = False
 
-# ────────────────────────────────────────────────────────────
-# 3.  HEADER
-# ────────────────────────────────────────────────────────────
-
 st.markdown('<p class="wk-title">⚽ WK Poule 2026</p>', unsafe_allow_html=True)
 st.markdown(
-    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Achtste Finales · Multiplier ×2.0</p>',
+    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Kwartfinales · Multiplier ×2.5</p>',
     unsafe_allow_html=True,
 )
-
-# ────────────────────────────────────────────────────────────
-# 4.  HOOFD-TABS
-# ────────────────────────────────────────────────────────────
 
 main_tab1, main_tab2 = st.tabs(["📝 Voorspellingen Insturen", "🏆 Live Klassement"])
 
@@ -617,9 +602,8 @@ with main_tab1:
         )
     else:
         st.info(
-            f"**{HUIDIGE_RONDE} – Achtste Finales is open!** Alle punten tellen ×2.0. "
-            "Vul de 8 wedstrijden in en kies je topscorers. "
-            "Let op: 2 wedstrijden zijn nog afhankelijk van de uitslag van Ronde 4."
+            f"**{HUIDIGE_RONDE} – Kwartfinales is open!** Alle punten tellen ×2.5. "
+            "Vul de 4 wedstrijden in en kies je topscorers."
         )
 
         with st.form(f"wk_poule_{HUIDIGE_RONDE.lower().replace(' ', '_')}", border=False):
@@ -631,7 +615,7 @@ with main_tab1:
 
             st.divider()
 
-            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×2.0)")
+            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×2.5)")
             st.caption(
                 "Vul per wedstrijd de verwachte uitslag in (bijv. **2-1**), "
                 "kies het aantal gele kaarten en de minuut van het eerste doelpunt."
@@ -641,22 +625,14 @@ with main_tab1:
             gele_vals:    dict[str, str] = {}
             tijd_vals:    dict[str, str] = {}
 
-            wed_tabs = st.tabs(["🌍 Wedstrijden 1–4", "🌍 Wedstrijden 5–8"])
-
-            for tab_idx, (wtab, start) in enumerate(zip(wed_tabs, [0, 4])):
-                with wtab:
-                    for local_i in range(4):
-                        global_i = start + local_i
-                        if global_i >= len(WEDSTRIJDEN):
-                            break
-                        wed = WEDSTRIJDEN[global_i]
-                        with st.expander(f"⚽ {wed}"):
-                            uitslag_vals[wed] = st.text_input(
-                                "Uitslag (bijv. 2-1)", placeholder="bijv. 2-1", key=f"u_{global_i}")
-                            gele_vals[wed] = st.selectbox(
-                                "Gele kaarten", GELE_KAARTEN_OPTIES, key=f"g_{global_i}")
-                            tijd_vals[wed] = st.selectbox(
-                                "Tijd 1e doelpunt", TIJD_DOELPUNT_OPTIES, key=f"t_{global_i}")
+            for global_i, wed in enumerate(WEDSTRIJDEN):
+                with st.expander(f"⚽ {wed}"):
+                    uitslag_vals[wed] = st.text_input(
+                        "Uitslag (bijv. 2-1)", placeholder="bijv. 2-1", key=f"u_{global_i}")
+                    gele_vals[wed] = st.selectbox(
+                        "Gele kaarten", GELE_KAARTEN_OPTIES, key=f"g_{global_i}")
+                    tijd_vals[wed] = st.selectbox(
+                        "Tijd 1e doelpunt", TIJD_DOELPUNT_OPTIES, key=f"t_{global_i}")
 
             st.divider()
 
@@ -683,18 +659,16 @@ with main_tab1:
             if len(topscorer_val) != 4: fouten.append(f"Selecteer precies 4 topscorers (nu {len(topscorer_val)} geselecteerd).")
 
             uitslag_fouten: list[str] = []
-            for i, wed in enumerate(WEDSTRIJDEN):
-                tab_nr = i // 4 + 1
-                label  = f"Wedstrijden {tab_nr * 4 - 3}–{min(tab_nr * 4, len(WEDSTRIJDEN))}"
+            for wed in WEDSTRIJDEN:
                 if not _UITSLAG_RE.match(uitslag_vals[wed].strip()):
-                    uitslag_fouten.append(f"'{wed}' ({label})")
+                    uitslag_fouten.append(f"'{wed}'")
                 if gele_vals[wed] == _PH: fouten.append(f"Gele kaarten ontbreken: '{wed}'.")
                 if tijd_vals[wed] == _PH: fouten.append(f"Tijd 1e doelpunt ontbreekt: '{wed}'.")
             if uitslag_fouten:
                 fouten.append("Ongeldige of ontbrekende uitslag bij: " + ", ".join(uitslag_fouten) + ".")
 
             if fouten:
-                st.error("⚠️ Niet alle velden zijn correct ingevuld. Loop de tabbladen langs!")
+                st.error("⚠️ Niet alle velden zijn correct ingevuld.")
             else:
                 can_submit = True
                 try:
@@ -704,8 +678,8 @@ with main_tab1:
                     for r in rows:
                         if not isinstance(r, dict): continue
                         if str(r.get("E-mailadres", "")).strip().lower() == email_val.strip().lower():
-                            if r.get("Topscorer Speler 1 (Ronde 5)", ""):
-                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 5!")
+                            if r.get("Topscorer Speler 1 (Ronde 6)", ""):
+                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 6!")
                                 can_submit = False
                             break
                 except Exception:
@@ -718,7 +692,7 @@ with main_tab1:
                         "E-mailadres":   email_val,
                     }
                     for j, speler in enumerate(topscorer_val, 1):
-                        payload[f"Topscorer Speler {j} (Ronde 5)"] = speler
+                        payload[f"Topscorer Speler {j} (Ronde 6)"] = speler
                     for wed in WEDSTRIJDEN:
                         payload[f"{wed} (Uitslag)"]          = uitslag_vals[wed]
                         payload[f"{wed} (Gele Kaarten)"]     = gele_vals[wed]
