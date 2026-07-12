@@ -19,7 +19,7 @@ DATASTUDIO_URL = (
 )
 
 # ← HIER AANPASSEN per ronde
-HUIDIGE_RONDE = "Ronde 6"
+HUIDIGE_RONDE = "Ronde 7"
 
 WEDSTRIJDEN_R1: list[str] = [
     "Mexico - Zuid-Afrika", "Zuid-Korea - Tsjechië", "Canada - Bosnië & Herzegovina",
@@ -60,22 +60,22 @@ WEDSTRIJDEN_R5: list[str] = [
     "Mexico - Engeland", "Portugal - Spanje", "Verenigde Staten - België",
     "Australië/Egypte - Argentinië/Kaapverdië", "Zwitserland - Colombia/Ghana",
 ]
-
-# ── Kwartfinales (4 wedstrijden, multiplier × 2.5) ───────────
 WEDSTRIJDEN_R6: list[str] = [
-    "Frankrijk - Marokko",
-    "Spanje - België",
-    "Noorwegen - Engeland",
-    "Argentinië - Zwitserland",
+    "Frankrijk - Marokko", "Spanje - België",
+    "Noorwegen - Engeland", "Argentinië - Zwitserland",
+]
+
+# ── Halve Finales (2 wedstrijden, multiplier × 3.0) ──────────
+WEDSTRIJDEN_R7: list[str] = [
+    "Frankrijk - Spanje",
+    "Engeland - Argentinië",
 ]
 
 WEDSTRIJDEN: list[str] = {
-    "Ronde 1": WEDSTRIJDEN_R1,
-    "Ronde 2": WEDSTRIJDEN_R2,
-    "Ronde 3": WEDSTRIJDEN_R3,
-    "Ronde 4": WEDSTRIJDEN_R4,
-    "Ronde 5": WEDSTRIJDEN_R5,
-    "Ronde 6": WEDSTRIJDEN_R6,
+    "Ronde 1": WEDSTRIJDEN_R1, "Ronde 2": WEDSTRIJDEN_R2,
+    "Ronde 3": WEDSTRIJDEN_R3, "Ronde 4": WEDSTRIJDEN_R4,
+    "Ronde 5": WEDSTRIJDEN_R5, "Ronde 6": WEDSTRIJDEN_R6,
+    "Ronde 7": WEDSTRIJDEN_R7,
 }[HUIDIGE_RONDE]
 
 _PH      = "-- Maak een keuze --"
@@ -567,17 +567,11 @@ TOPSPELERS: list[str] = sorted(set(_SPELERS_RAW))
 # 1.  PAGINA-CONFIGURATIE
 # ────────────────────────────────────────────────────────────
 
-st.set_page_config(
-    page_title="WK Poule 2026 – Kompas Publishing",
-    page_icon="⚽",
-    layout="centered",
-)
+st.set_page_config(page_title="WK Poule 2026 – Kompas Publishing", page_icon="⚽", layout="centered")
 st.markdown("""
 <style>
-    .wk-title { font-size:2.4rem; font-weight:800; text-align:center;
-                color:#FF7A00; margin:0; line-height:1.1; }
-    .wk-sub   { text-align:center; color:#888; font-size:0.95rem;
-                margin:0.3rem 0 1.2rem; }
+    .wk-title { font-size:2.4rem; font-weight:800; text-align:center; color:#FF7A00; margin:0; line-height:1.1; }
+    .wk-sub   { text-align:center; color:#888; font-size:0.95rem; margin:0.3rem 0 1.2rem; }
     div[data-testid="stExpander"] summary { font-weight: 600; }
 </style>
 """, unsafe_allow_html=True)
@@ -587,24 +581,20 @@ if f"ingestuurd_{HUIDIGE_RONDE}" not in st.session_state:
 
 st.markdown('<p class="wk-title">⚽ WK Poule 2026</p>', unsafe_allow_html=True)
 st.markdown(
-    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Kwartfinales · Multiplier ×2.5</p>',
+    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Halve Finales · Multiplier ×3.0</p>',
     unsafe_allow_html=True,
 )
 
 main_tab1, main_tab2 = st.tabs(["📝 Voorspellingen Insturen", "🏆 Live Klassement"])
 
 with main_tab1:
-
     if st.session_state.get(f"ingestuurd_{HUIDIGE_RONDE}", False):
         st.success(
             f"✅ Je voorspellingen voor **{HUIDIGE_RONDE}** zijn al ingestuurd! "
-            "Check het **🏆 Live Klassement**-tabblad om de stand te volgen."
+            "Check het **🏆 Live Klassement**-tabblad."
         )
     else:
-        st.info(
-            f"**{HUIDIGE_RONDE} – Kwartfinales is open!** Alle punten tellen ×2.5. "
-            "Vul de 4 wedstrijden in en kies je topscorers."
-        )
+        st.info(f"**{HUIDIGE_RONDE} – Halve Finales is open!** Alle punten tellen ×3.0.")
 
         with st.form(f"wk_poule_{HUIDIGE_RONDE.lower().replace(' ', '_')}", border=False):
 
@@ -614,12 +604,8 @@ with main_tab1:
                 email_val    = st.text_input("E-mailadres *", placeholder="naam@kompas.nl", key="email")
 
             st.divider()
-
-            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×2.5)")
-            st.caption(
-                "Vul per wedstrijd de verwachte uitslag in (bijv. **2-1**), "
-                "kies het aantal gele kaarten en de minuut van het eerste doelpunt."
-            )
+            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×3.0)")
+            st.caption("Vul de uitslag in, kies het aantal gele kaarten en de minuut van het eerste doelpunt.")
 
             uitslag_vals: dict[str, str] = {}
             gele_vals:    dict[str, str] = {}
@@ -627,59 +613,42 @@ with main_tab1:
 
             for global_i, wed in enumerate(WEDSTRIJDEN):
                 with st.expander(f"⚽ {wed}"):
-                    uitslag_vals[wed] = st.text_input(
-                        "Uitslag (bijv. 2-1)", placeholder="bijv. 2-1", key=f"u_{global_i}")
-                    gele_vals[wed] = st.selectbox(
-                        "Gele kaarten", GELE_KAARTEN_OPTIES, key=f"g_{global_i}")
-                    tijd_vals[wed] = st.selectbox(
-                        "Tijd 1e doelpunt", TIJD_DOELPUNT_OPTIES, key=f"t_{global_i}")
+                    uitslag_vals[wed] = st.text_input("Uitslag (bijv. 2-1)", placeholder="bijv. 2-1", key=f"u_{global_i}")
+                    gele_vals[wed]    = st.selectbox("Gele kaarten", GELE_KAARTEN_OPTIES, key=f"g_{global_i}")
+                    tijd_vals[wed]    = st.selectbox("Tijd 1e doelpunt", TIJD_DOELPUNT_OPTIES, key=f"t_{global_i}")
 
             st.divider()
-
             st.subheader("🏆 Topscorers")
-            st.caption("🔒 De kampioenskeuze staat vast na Ronde 1.")
-
             topscorer_val = st.multiselect(
-                "Kies precies 4 topscorers (type een naam om te zoeken) *",
-                TOPSPELERS, max_selections=4, key="topscorers",
-                help="Selecteer exact 4 spelers waarvan jij denkt dat ze topscorer worden.",
-            )
+                "Kies precies 4 topscorers *", TOPSPELERS, max_selections=4, key="topscorers")
             if topscorer_val:
                 st.caption(f"Geselecteerd: {len(topscorer_val)}/4")
 
             st.divider()
-
-            submitted = st.form_submit_button(
-                f"📨 Insturen – {HUIDIGE_RONDE}", use_container_width=True, type="primary")
+            submitted = st.form_submit_button(f"📨 Insturen – {HUIDIGE_RONDE}", use_container_width=True, type="primary")
 
         if submitted:
             fouten: list[str] = []
             if not nickname_val.strip(): fouten.append("Vul je nickname in.")
             if not email_val.strip() or "@" not in email_val: fouten.append("Vul een geldig e-mailadres in.")
-            if len(topscorer_val) != 4: fouten.append(f"Selecteer precies 4 topscorers (nu {len(topscorer_val)} geselecteerd).")
-
-            uitslag_fouten: list[str] = []
+            if len(topscorer_val) != 4: fouten.append(f"Selecteer precies 4 topscorers (nu {len(topscorer_val)}).")
             for wed in WEDSTRIJDEN:
-                if not _UITSLAG_RE.match(uitslag_vals[wed].strip()):
-                    uitslag_fouten.append(f"'{wed}'")
+                if not _UITSLAG_RE.match(uitslag_vals[wed].strip()): fouten.append(f"Uitslag ontbreekt/incorrect: '{wed}'.")
                 if gele_vals[wed] == _PH: fouten.append(f"Gele kaarten ontbreken: '{wed}'.")
                 if tijd_vals[wed] == _PH: fouten.append(f"Tijd 1e doelpunt ontbreekt: '{wed}'.")
-            if uitslag_fouten:
-                fouten.append("Ongeldige of ontbrekende uitslag bij: " + ", ".join(uitslag_fouten) + ".")
 
             if fouten:
                 st.error("⚠️ Niet alle velden zijn correct ingevuld.")
             else:
                 can_submit = True
                 try:
-                    resp_get = requests.get(APPS_SCRIPT_URL, timeout=6)
-                    rows = resp_get.json()
+                    rows = requests.get(APPS_SCRIPT_URL, timeout=6).json()
                     if not isinstance(rows, list): rows = rows.get("data", [])
                     for r in rows:
                         if not isinstance(r, dict): continue
                         if str(r.get("E-mailadres", "")).strip().lower() == email_val.strip().lower():
-                            if r.get("Topscorer Speler 1 (Ronde 6)", ""):
-                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 6!")
+                            if r.get("Topscorer Speler 1 (Ronde 7)", ""):
+                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 7!")
                                 can_submit = False
                             break
                 except Exception:
@@ -692,25 +661,21 @@ with main_tab1:
                         "E-mailadres":   email_val,
                     }
                     for j, speler in enumerate(topscorer_val, 1):
-                        payload[f"Topscorer Speler {j} (Ronde 6)"] = speler
+                        payload[f"Topscorer Speler {j} (Ronde 7)"] = speler
                     for wed in WEDSTRIJDEN:
                         payload[f"{wed} (Uitslag)"]          = uitslag_vals[wed]
                         payload[f"{wed} (Gele Kaarten)"]     = gele_vals[wed]
                         payload[f"{wed} (Tijd 1e Doelpunt)"] = tijd_vals[wed]
 
                     try:
-                        resp_post = requests.post(
-                            APPS_SCRIPT_URL,
-                            data=json.dumps(payload),
-                            headers={"Content-Type": "application/json"},
-                            timeout=12,
-                        )
-                        if resp_post.status_code == 200:
+                        resp = requests.post(APPS_SCRIPT_URL, data=json.dumps(payload),
+                                             headers={"Content-Type": "application/json"}, timeout=12)
+                        if resp.status_code == 200:
                             st.session_state[f"ingestuurd_{HUIDIGE_RONDE}"] = True
-                            st.success(f"✅ Gelukt! Je voorspellingen voor **{HUIDIGE_RONDE}** zijn ingestuurd.")
+                            st.success(f"✅ Gelukt! Voorspellingen voor **{HUIDIGE_RONDE}** ingestuurd.")
                             st.balloons()
                         else:
-                            st.error(f"Fout bij opslaan (status {resp_post.status_code}). Probeer opnieuw.")
+                            st.error(f"Fout bij opslaan (status {resp.status_code}).")
                     except Exception as ex:
                         st.error(f"Verbindingsfout: {ex}")
 
@@ -720,8 +685,7 @@ with main_tab2:
     components.html(
         f'<iframe src="{DATASTUDIO_URL}" width="100%" height="700" '
         'style="border:0; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" '
-        'allowfullscreen '
-        'sandbox="allow-storage-access-by-user-activation allow-scripts '
+        'allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts '
         'allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>',
         height=720,
     )
