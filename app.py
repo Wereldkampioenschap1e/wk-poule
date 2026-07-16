@@ -19,7 +19,7 @@ DATASTUDIO_URL = (
 )
 
 # ← HIER AANPASSEN per ronde
-HUIDIGE_RONDE = "Ronde 7"
+HUIDIGE_RONDE = "Ronde 8"
 
 WEDSTRIJDEN_R1: list[str] = [
     "Mexico - Zuid-Afrika", "Zuid-Korea - Tsjechië", "Canada - Bosnië & Herzegovina",
@@ -64,18 +64,22 @@ WEDSTRIJDEN_R6: list[str] = [
     "Frankrijk - Marokko", "Spanje - België",
     "Noorwegen - Engeland", "Argentinië - Zwitserland",
 ]
-
-# ── Halve Finales (2 wedstrijden, multiplier × 3.0) ──────────
 WEDSTRIJDEN_R7: list[str] = [
     "Frankrijk - Spanje",
     "Engeland - Argentinië",
+]
+
+# ── Finale + Wedstrijd om 3e plek (multiplier × 4.0) ─────────
+WEDSTRIJDEN_R8: list[str] = [
+    "Spanje - Argentinië",
+    "Frankrijk - Engeland",
 ]
 
 WEDSTRIJDEN: list[str] = {
     "Ronde 1": WEDSTRIJDEN_R1, "Ronde 2": WEDSTRIJDEN_R2,
     "Ronde 3": WEDSTRIJDEN_R3, "Ronde 4": WEDSTRIJDEN_R4,
     "Ronde 5": WEDSTRIJDEN_R5, "Ronde 6": WEDSTRIJDEN_R6,
-    "Ronde 7": WEDSTRIJDEN_R7,
+    "Ronde 7": WEDSTRIJDEN_R7, "Ronde 8": WEDSTRIJDEN_R8,
 }[HUIDIGE_RONDE]
 
 _PH      = "-- Maak een keuze --"
@@ -581,7 +585,7 @@ if f"ingestuurd_{HUIDIGE_RONDE}" not in st.session_state:
 
 st.markdown('<p class="wk-title">⚽ WK Poule 2026</p>', unsafe_allow_html=True)
 st.markdown(
-    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Halve Finales · Multiplier ×3.0</p>',
+    f'<p class="wk-sub">Kompas Publishing – {HUIDIGE_RONDE} · Finale & 3e Plek · Multiplier ×4.0</p>',
     unsafe_allow_html=True,
 )
 
@@ -594,7 +598,10 @@ with main_tab1:
             "Check het **🏆 Live Klassement**-tabblad."
         )
     else:
-        st.info(f"**{HUIDIGE_RONDE} – Halve Finales is open!** Alle punten tellen ×3.0.")
+        st.info(
+            f"**🏆 De Finale & Wedstrijd om de 3e plek zijn open!** "
+            "Alle punten tellen ×4.0. Dit is je laatste kans!"
+        )
 
         with st.form(f"wk_poule_{HUIDIGE_RONDE.lower().replace(' ', '_')}", border=False):
 
@@ -604,7 +611,7 @@ with main_tab1:
                 email_val    = st.text_input("E-mailadres *", placeholder="naam@kompas.nl", key="email")
 
             st.divider()
-            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×3.0)")
+            st.subheader(f"⚽ Wedstrijdvoorspellingen – {HUIDIGE_RONDE} (×4.0)")
             st.caption("Vul de uitslag in, kies het aantal gele kaarten en de minuut van het eerste doelpunt.")
 
             uitslag_vals: dict[str, str] = {}
@@ -612,7 +619,8 @@ with main_tab1:
             tijd_vals:    dict[str, str] = {}
 
             for global_i, wed in enumerate(WEDSTRIJDEN):
-                with st.expander(f"⚽ {wed}"):
+                label = "🏆 FINALE" if wed == "Spanje - Argentinië" else "🥉 Wedstrijd om 3e plek"
+                with st.expander(f"{label}: {wed}"):
                     uitslag_vals[wed] = st.text_input("Uitslag (bijv. 2-1)", placeholder="bijv. 2-1", key=f"u_{global_i}")
                     gele_vals[wed]    = st.selectbox("Gele kaarten", GELE_KAARTEN_OPTIES, key=f"g_{global_i}")
                     tijd_vals[wed]    = st.selectbox("Tijd 1e doelpunt", TIJD_DOELPUNT_OPTIES, key=f"t_{global_i}")
@@ -625,7 +633,8 @@ with main_tab1:
                 st.caption(f"Geselecteerd: {len(topscorer_val)}/4")
 
             st.divider()
-            submitted = st.form_submit_button(f"📨 Insturen – {HUIDIGE_RONDE}", use_container_width=True, type="primary")
+            submitted = st.form_submit_button(
+                f"📨 Insturen – {HUIDIGE_RONDE} (Finale)", use_container_width=True, type="primary")
 
         if submitted:
             fouten: list[str] = []
@@ -647,8 +656,8 @@ with main_tab1:
                     for r in rows:
                         if not isinstance(r, dict): continue
                         if str(r.get("E-mailadres", "")).strip().lower() == email_val.strip().lower():
-                            if r.get("Topscorer Speler 1 (Ronde 7)", ""):
-                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 7!")
+                            if r.get("Topscorer Speler 1 (Ronde 8)", ""):
+                                st.error("🚨 Dit e-mailadres heeft al meegedaan voor Ronde 8!")
                                 can_submit = False
                             break
                 except Exception:
@@ -661,7 +670,7 @@ with main_tab1:
                         "E-mailadres":   email_val,
                     }
                     for j, speler in enumerate(topscorer_val, 1):
-                        payload[f"Topscorer Speler {j} (Ronde 7)"] = speler
+                        payload[f"Topscorer Speler {j} (Ronde 8)"] = speler
                     for wed in WEDSTRIJDEN:
                         payload[f"{wed} (Uitslag)"]          = uitslag_vals[wed]
                         payload[f"{wed} (Gele Kaarten)"]     = gele_vals[wed]
@@ -672,7 +681,7 @@ with main_tab1:
                                              headers={"Content-Type": "application/json"}, timeout=12)
                         if resp.status_code == 200:
                             st.session_state[f"ingestuurd_{HUIDIGE_RONDE}"] = True
-                            st.success(f"✅ Gelukt! Voorspellingen voor **{HUIDIGE_RONDE}** ingestuurd.")
+                            st.success(f"✅ Gelukt! Je finaletips zijn ingestuurd. Veel succes! 🏆")
                             st.balloons()
                         else:
                             st.error(f"Fout bij opslaan (status {resp.status_code}).")
